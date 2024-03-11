@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -76,8 +77,14 @@ func tick(w http.ResponseWriter, req *http.Request) {
 		board = memory[idInt]
 
 	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+
 	fmt.Println("[INFO]: start: ", board)
 	board = iterate(board)
+	fmt.Println("[INFO]: writing")
+	json.NewEncoder(w).Encode(board)
 	fmt.Println("[INFO]: after: ", board)
 }
 
