@@ -149,8 +149,6 @@ func tick(w http.ResponseWriter, req *http.Request) {
 
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 
-	w.Header().Set("Access-Control-Allow-Origin", "http://localhost:3000")
-
 	w.WriteHeader(http.StatusCreated)
 
 	newBoard := iterate(board)
