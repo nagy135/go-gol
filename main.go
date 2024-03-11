@@ -7,37 +7,45 @@ import (
 	// "time"
 )
 
-const width = 3
-const height = 3
+const width = 10
+const height = 10
 
 var i = 0
 var memory = make(map[int][][]int)
 
-func start(w http.ResponseWriter, req *http.Request) {
-
-	// ctx := req.Context()
-	fmt.Println("[INFO]: connection received")
-	defer fmt.Println("[INFO]: responded")
-
-	data := [][]int{
-		{0, 0, 0},
-		{0, 0, 0},
-		{0, 0, 0},
+func iterate(board [][]int) [][]int {
+	indexes := [][]int{
+		{-1, -1},
+		{-1, 0},
+		{-1, 1},
+		{0, 1},
+		{1, 1},
+		{1, 0},
+		{1, -1},
+		{0, -1},
 	}
-	memory[i] = data
-	i += 1
+	for y := 0; y < height; y++ {
+		for x := 0; x < width; x++ {
+			alive := 0
+			for _, pair := range indexes {
+				targetX := x + pair[0]
+				targetY := y + pair[1]
+				if targetX > 0 && targetY > 0 && targetX < width && targetY < height && board[targetY][targetX] == 1 {
+					alive += 1
+				}
+			}
 
-	fmt.Println("memory:", memory)
-
-	// select {
-	// case <-time.After(10 * time.Second):
-	// 	fmt.Fprintf(w, "hello\n")
-	// case <-ctx.Done():
-	// 	err := ctx.Err()
-	// 	fmt.Println("server:", err)
-	// 	internalError := http.StatusInternalServerError
-	// 	http.Error(w, err.Error(), internalError)
-	// }
+			// rules
+			if board[y][x] == 1 && (alive == 2 || alive == 3) {
+				board[y][x] = 1
+			} else if board[y][x] == 0 && alive == 3 {
+				board[y][x] = 1
+			} else {
+				board[y][x] = 0
+			}
+		}
+	}
+	return board
 }
 
 func tick(w http.ResponseWriter, req *http.Request) {
@@ -52,9 +60,16 @@ func tick(w http.ResponseWriter, req *http.Request) {
 	if !ok {
 		fmt.Println("[INFO]: creating new")
 		data := [][]int{
-			{0, 0, 0},
-			{0, 0, 0},
-			{0, 0, 0},
+			{0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+			{0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+			{0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+			{0, 0, 0, 1, 0, 0, 0, 0, 0, 0},
+			{0, 0, 0, 1, 1, 0, 0, 0, 0, 0},
+			{0, 0, 0, 1, 1, 0, 0, 0, 0, 0},
+			{0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+			{0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+			{0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+			{0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
 		}
 		memory[idInt] = data
 		i += 1
@@ -62,17 +77,12 @@ func tick(w http.ResponseWriter, req *http.Request) {
 
 	}
 	fmt.Println("[INFO]: start: ", board)
-	for y := 0; y < height; y++ {
-		for x := 0; x < width; x++ {
-			board[y][x] = 1
-		}
-	}
+	board = iterate(board)
 	fmt.Println("[INFO]: after: ", board)
 }
 
 func main() {
 
-	http.HandleFunc("/start", start)
 	http.HandleFunc("/tick", tick)
 	http.ListenAndServe(":8090", nil)
 }
